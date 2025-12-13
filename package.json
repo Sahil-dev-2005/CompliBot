@@ -1,21 +1,36 @@
 {
   "name": "complibot",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "CompliBot - AI-Powered GST Compliance Assistant",
+  "main": "src/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node src/index.js",
+    "server": "node src/server.js",
+    "dev": "nodemon src/index.js",
+    "test": "node test-system.js",
+    "test:api": "node test-api.js",
+    "test:bot": "node test-bot.js"
   },
   "author": "",
-  "type": "module",
   "license": "ISC",
   "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "@libsql/client": "^0.14.0",
+    "axios": "^1.6.2",
     "better-sqlite3": "^12.5.0",
+    "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
+    "form-data": "^4.0.0",
+    "multer": "^1.4.5-lts.1",
+    "node-fetch": "^2.7.0",
     "telegraf": "^4.16.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "@eslint/js": "^9.39.2",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "nodemon": "^3.1.11",
+    "prettier": "^3.7.4"
   }
 }
