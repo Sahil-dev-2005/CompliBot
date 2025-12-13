@@ -1,15 +1,15 @@
 {
   "name": "complibot",
   "version": "1.0.0",
-  "description": "CompliBot - Telegram GST Filing Assistant",
-  "main": "src/bot.js",
-  "type": "module",
+  "description": "CompliBot - AI-Powered GST Compliance Assistant",
+  "main": "src/index.js",
   "scripts": {
-    "start": "node src/server.js",
-    "bot": "node src/index.js",
-    "dev": "nodemon src/server.js",
-    "dev-bot": "nodemon src/index.js",
-    "test": "node test-api.js"
+    "start": "node src/index.js",
+    "server": "node src/server.js",
+    "dev": "nodemon src/index.js",
+    "test": "node test-system.js",
+    "test:api": "node test-api.js",
+    "test:bot": "node test-bot.js"
   },
   "author": "",
   "license": "ISC",
