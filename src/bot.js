@@ -127,6 +127,28 @@ const canMakeAICall = () => {
     return true;
 };
 
+// Helper function to safely edit messages with fallback to new message
+const safeEditMessage = async (ctx, text, options = {}) => {
+    try {
+        await ctx.editMessageText(text, options);
+    } catch (editError) {
+        // If message can't be edited, send a new message instead
+        if (editError.response?.error_code === 400 &&
+            editError.response?.description?.includes("message can't be edited")) {
+            console.log('Message edit failed, sending new message instead');
+            try {
+                await ctx.reply(text, options);
+            } catch (replyError) {
+                console.error('Both edit and reply failed:', replyError.message);
+                // Last resort - send simple text message
+                await ctx.reply('✅ Processing completed. Type "json" to get your GST return format.');
+            }
+        } else {
+            throw editError; // Re-throw other errors
+        }
+    }
+};
+
 // Helper function to get AI response with quota handling
 const getAIResponse = async (question, userLanguage = 'en') => {
     // Check rate limiting
@@ -370,7 +392,26 @@ bot.on('text', async (ctx) => {
                 return;
             } catch (jsonError) {
                 console.error('JSON generation error:', jsonError);
-                await ctx.reply('❌ Error generating JSON. Please try processing the invoice again.');
+
+                // Provide fallback JSON if generation fails
+                try {
+                    const { generateFallbackJSON } = require('./tools/jsonGenerator');
+                    const fallbackData = generateFallbackJSON();
+
+                    const jsonString = JSON.stringify(fallbackData.gstReturnFormat, null, 2);
+                    await ctx.replyWithDocument({
+                        source: Buffer.from(jsonString, 'utf8'),
+                        filename: `fallback_gst_return_${Date.now()}.json`
+                    }, {
+                        caption: '⚠️ *Fallback GST Return JSON*\n\n' +
+                            'Original JSON generation failed. Here\'s a sample GST return format for reference.\n' +
+                            'Upload a new invoice image to try again.',
+                        parse_mode: 'Markdown'
+                    });
+                } catch (fallbackError) {
+                    console.error('Fallback JSON also failed:', fallbackError);
+                    await ctx.reply('❌ Error generating JSON. Please try processing the invoice again or contact support.');
+                }
                 return;
             }
         }
@@ -475,7 +516,7 @@ bot.on(['photo', 'document'], async (ctx) => {
             }
 
             if (!fileId) {
-                await ctx.editMessageText('❌ Could not process the file. Please try again.');
+                await safeEditMessage(ctx, '❌ Could not process the file. Please try again.');
                 return;
             }
 
@@ -561,17 +602,59 @@ bot.on(['photo', 'document'], async (ctx) => {
                     ]
                 };
 
-                await ctx.editMessageText(message, {
+                await safeEditMessage(ctx, message, {
                     parse_mode: 'Markdown',
                     reply_markup: keyboard
                 });
             } else {
-                await ctx.editMessageText('❌ Failed to process invoice. Please ensure the image is clear and try again.');
+                await safeEditMessage(ctx, '❌ Failed to process invoice. Please ensure the image is clear and try again.');
             }
 
         } catch (processingError) {
             console.error('Invoice processing error:', processingError);
-            await ctx.editMessageText('❌ Failed to process invoice. Please ensure the image is clear and try again.');
+
+            // Provide fallback with sample data if processing completely fails
+            try {
+                const { generateFallbackJSON } = require('./tools/jsonGenerator');
+                const fallbackData = generateFallbackJSON();
+
+                // Store fallback data in session
+                ctx.session.lastInvoiceData = fallbackData.extractedInvoiceData;
+
+                let message = `⚠️ *Invoice Processing Failed - Sample Data Provided*\n\n`;
+                message += `🤖 Unable to process your invoice image. Here's a sample GST return format:\n\n`;
+
+                const { supplier, recipient, invoice, items } = fallbackData.extractedInvoiceData;
+
+                message += `📤 *Sample Supplier:*\n`;
+                message += `• GSTIN: \`${supplier.gstin}\`\n`;
+                message += `• Name: ${supplier.legalName}\n\n`;
+
+                message += `📄 *Sample Invoice:*\n`;
+                message += `• Number: ${invoice.number}\n`;
+                message += `• Total Value: ₹${invoice.totalValue.toLocaleString('en-IN')}\n\n`;
+
+                message += `💾 *Sample JSON Available*\n`;
+                message += `Click below to download the GST return format.\n\n`;
+                message += `💡 *Try again with a clearer image for actual processing.*`;
+
+                const keyboard = {
+                    inline_keyboard: [
+                        [
+                            { text: '📄 Get Sample JSON', callback_data: 'get_json' },
+                            { text: '📤 Upload Tips', callback_data: 'upload_help' }
+                        ]
+                    ]
+                };
+
+                await safeEditMessage(ctx, message, {
+                    parse_mode: 'Markdown',
+                    reply_markup: keyboard
+                });
+            } catch (fallbackError) {
+                console.error('Fallback processing also failed:', fallbackError);
+                await safeEditMessage(ctx, '❌ Failed to process invoice. Please ensure the image is clear and try again.');
+            }
         }
 
     } catch (error) {
@@ -584,7 +667,18 @@ bot.on(['photo', 'document'], async (ctx) => {
 bot.on('callback_query', async (ctx) => {
     try {
         const data = ctx.callbackQuery.data;
-        await ctx.answerCbQuery();
+
+        // Handle callback query with timeout protection
+        try {
+            await ctx.answerCbQuery();
+        } catch (cbError) {
+            // Ignore timeout errors for callback queries
+            if (cbError.response?.error_code === 400 && cbError.response?.description?.includes('query is too old')) {
+                console.log('Callback query timeout (ignored):', cbError.response.description);
+            } else {
+                console.error('Callback query error:', cbError.message);
+            }
+        }
 
         if (data === 'get_json') {
             if (!ctx.session.lastInvoiceData) {
@@ -607,7 +701,25 @@ bot.on('callback_query', async (ctx) => {
                 });
             } catch (error) {
                 console.error('JSON generation error:', error);
-                await ctx.reply('❌ Error generating JSON. Please try processing the invoice again.');
+
+                // Provide fallback JSON if generation fails
+                try {
+                    const { generateFallbackJSON } = require('./tools/jsonGenerator');
+                    const fallbackData = generateFallbackJSON();
+
+                    const jsonString = JSON.stringify(fallbackData.gstReturnFormat, null, 2);
+                    await ctx.replyWithDocument({
+                        source: Buffer.from(jsonString, 'utf8'),
+                        filename: `fallback_gst_return_${Date.now()}.json`
+                    }, {
+                        caption: '⚠️ *Fallback GST Return JSON*\n\n' +
+                            'JSON generation failed. Here\'s a sample GST return format for reference.',
+                        parse_mode: 'Markdown'
+                    });
+                } catch (fallbackError) {
+                    console.error('Fallback JSON also failed:', fallbackError);
+                    await ctx.reply('❌ Error generating JSON. Please contact support.');
+                }
             }
         } else if (data === 'view_summary') {
             if (!ctx.session.lastInvoiceData) {

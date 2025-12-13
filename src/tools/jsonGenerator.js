@@ -237,10 +237,36 @@ const validateAndEnhanceData = (data) => {
     // Format invoice date
     if (enhanced.invoice && enhanced.invoice.date) {
         try {
-            const dateObj = new Date(enhanced.invoice.date);
-            enhanced.invoice.date = formatGSTDate(dateObj);
+            // Handle various date formats
+            let dateObj;
+            if (enhanced.invoice.date.includes('-')) {
+                // Handle DD-MM-YYYY or YYYY-MM-DD formats
+                const parts = enhanced.invoice.date.split('-');
+                if (parts.length === 3) {
+                    if (parts[0].length === 4) {
+                        // YYYY-MM-DD format
+                        dateObj = new Date(parts[0], parts[1] - 1, parts[2]);
+                    } else {
+                        // DD-MM-YYYY format
+                        dateObj = new Date(parts[2], parts[1] - 1, parts[0]);
+                    }
+                }
+            } else {
+                dateObj = new Date(enhanced.invoice.date);
+            }
+
+            // Check if date is valid
+            if (dateObj && !isNaN(dateObj.getTime())) {
+                enhanced.invoice.date = formatGSTDate(dateObj);
+            } else {
+                // Use current date as fallback
+                enhanced.invoice.date = formatGSTDate(new Date());
+                console.warn("Invalid invoice date, using current date:", enhanced.invoice.date);
+            }
         } catch (e) {
-            console.warn("Could not format invoice date:", enhanced.invoice.date);
+            // Use current date as fallback
+            enhanced.invoice.date = formatGSTDate(new Date());
+            console.warn("Could not format invoice date, using current date:", e.message);
         }
     }
 

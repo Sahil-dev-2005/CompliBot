@@ -47,7 +47,11 @@ if (config.telegram.botToken) {
             console.log('✅ Telegram bot started successfully');
         })
         .catch((error) => {
-            console.error('❌ Failed to start Telegram bot:', error);
+            console.error('❌ Failed to start Telegram bot:', error.message);
+            if (error.response?.error_code === 409) {
+                console.log('💡 Another bot instance is running. Please stop it first or wait a few minutes.');
+                console.log('   You can also try restarting with a different bot token.');
+            }
         });
 
     // Enable graceful stop
