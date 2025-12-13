@@ -4,6 +4,9 @@
 
 ### AI-Powered GST Compliance & Invoice Processing Assistant
 
+[![CI Pipeline](https://github.com/yourusername/complibot/actions/workflows/ci.yml/badge.svg)](https://github.com/yourusername/complibot/actions/workflows/ci.yml)
+[![ESLint](https://github.com/yourusername/complibot/actions/workflows/lint.yml/badge.svg)](https://github.com/yourusername/complibot/actions/workflows/lint.yml)
+[![Prettier](https://github.com/yourusername/complibot/actions/workflows/format.yml/badge.svg)](https://github.com/yourusername/complibot/actions/workflows/format.yml)
 [![Node.js](https://img.shields.io/badge/Node.js-22.14.0-green.svg)](https://nodejs.org/)
 [![Express](https://img.shields.io/badge/Express-5.2.1-blue.svg)](https://expressjs.com/)
 [![Google AI](https://img.shields.io/badge/Google_AI-Gemini_2.5-orange.svg)](https://ai.google.dev/)
