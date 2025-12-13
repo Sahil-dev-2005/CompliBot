@@ -1,0 +1,101 @@
+.card {
+  background: linear-gradient(135deg, #030710, #04283A, #473437);
+  border: 1px solid #473437;
+  border-radius: 8px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.card:hover {
+  box-shadow: 0 4px 6px -1px rgba(218, 28, 37, 0.3);
+  border-color: #DA1C25;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.type {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #ffffff;
+  margin: 0;
+}
+
+.badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  border: 1px solid;
+}
+
+.badge.pending {
+  background: #473437;
+  color: #C6CFD2;
+  border-color: #C6CFD2;
+}
+
+.badge.overdue {
+  background: #DA1C25;
+  color: #ffffff;
+  border-color: #DA1C25;
+}
+
+.badge.completed {
+  background: #04283A;
+  color: #C6CFD2;
+  border-color: #C6CFD2;
+  font-size: 1rem;
+}
+
+.details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.details p {
+  margin: 0;
+  font-size: 0.875rem;
+  color: #C6CFD2;
+}
+
+.month {
+  font-weight: 500;
+  color: #ffffff;
+}
+
+.dueDate,
+.filedDate {
+  color: #C6CFD2;
+}
+
+.daysInfo {
+  font-weight: 500;
+}
+
+.daysInfo.pending {
+  color: #C6CFD2;
+}
+
+.daysInfo.overdue {
+  color: #DA1C25;
+}
+
+.amount {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.arn {
+  font-family: monospace;
+  font-size: 0.8rem;
+  color: #C6CFD2;
+}
